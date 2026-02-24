@@ -139,15 +139,5 @@ int main () {
     cudaFree(d_b);
     cudaFree(d_c);
 
-    /*
-    Performing warm-up runs...
-    Benchmarking CPU implementation...
-    Benchmarking GPU implementation...
-    CPU average time: 31.193009 milliseconds
-    GPU average time: 0.467497 milliseconds
-    Speedup: 66.723378x
-    Results are correct
-    */
-
     return 0;
 }

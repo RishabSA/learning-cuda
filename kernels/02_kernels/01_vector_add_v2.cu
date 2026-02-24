@@ -25,6 +25,7 @@ __global__ void vector_add_gpu_1d(float* a, float* b, float* c, int n) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < n) {
         c[i] = a[i] + b[i];
+        // Each thread has 1 addition and 1 store
     }
 }
 
@@ -33,6 +34,9 @@ __global__ void vector_add_gpu_3d(float* a, float* b, float* c, int nx, int ny, 
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
     int k = blockIdx.z * blockDim.z + threadIdx.z;
+    // Each thread has 3 additions, 3 multiplications, and 3 stores
+    // 3D kernel will be slower than 1D because each thread has more operations
+    // Only use a 3D kernel when necessary, depending on the data
 
     if (i < nx && j < ny && k < nz) {
         int idx = i + j * nx + k * nx * ny; // Flatten 3D index to 1D
@@ -84,7 +88,7 @@ int main () {
     cudaMemcpy(d_b, h_b, size, cudaMemcpyHostToDevice);
 
     // Define the grid and block dimensions for 1D
-    int num_blocks_1d = (N + BLOCK_SIZE _1D- 1) / BLOCK_SIZE_1D;
+    int num_blocks_1d = (N + BLOCK_SIZE_1D- 1) / BLOCK_SIZE_1D;
 
     // Define the grid and block dimensions for 3D
     int nx = 100, ny = 100, nz = 1000; // N = 100 * 100 * 1000 = 10 million
@@ -92,7 +96,7 @@ int main () {
     dim3 num_blocks_3d(
         (nx + block_size_3d.x - 1) / block_size_3d.x,
         (ny + block_size_3d.y - 1) / block_size_3d.y,
-        (nz + block_size_3d.z - 1) / block_size_3d.z,
+        (nz + block_size_3d.z - 1) / block_size_3d.z
     );
 
     // Warm-up Runs
@@ -100,7 +104,7 @@ int main () {
     for (int i = 0; i < 3; i++) {
         vector_add_cpu(h_a, h_b, h_c_cpu, N);
         vector_add_gpu_1d<<<num_blocks_1d, BLOCK_SIZE_1D>>>(d_a, d_b, d_c_1d, N);
-        vector_add_gpu_3d<<<num_blocks_3d, BLOCK_SIZE_3D>>>(d_a, d_b, d_c_3d, nx, ny, nz);
+        vector_add_gpu_3d<<<num_blocks_3d, block_size_3d>>>(d_a, d_b, d_c_3d, nx, ny, nz);
         cudaDeviceSynchronize();
     }
 
@@ -150,6 +154,7 @@ int main () {
     }
 
     printf("1D Results are %s\n", correct_1d ? "correct" : "incorrect");
+    printf("\n");
 
     // Benchmark GPU 3D implementation
     printf("Benchmarking GPU 3D implementation...\n");
@@ -182,11 +187,14 @@ int main () {
     }
     
     printf("3D Results are %s\n", correct_3d ? "correct" : "incorrect");
+    printf("\n");
 
     // Print results
     printf("CPU average time: %f milliseconds\n", cpu_avg_time * 1000);
     printf("GPU 1D average time: %f milliseconds\n", gpu_1d_avg_time * 1000);
     printf("GPU 3D average time: %f milliseconds\n", gpu_3d_avg_time * 1000);
+
+    printf("\n");
     printf("Speedup (CPU vs GPU 1D): %fx\n", cpu_avg_time / gpu_1d_avg_time);
     printf("Speedup (CPU vs GPU 3D): %fx\n", cpu_avg_time / gpu_3d_avg_time);
     printf("Speedup (GPU 1D vs GPU 3D): %fx\n", gpu_1d_avg_time / gpu_3d_avg_time);
