@@ -1,17 +1,43 @@
 {
+  "env": {
+    "cudaIncludePaths": [
+      "${env:CUDA_HOME}/include",
+      "${env:CUDA_PATH}/include",
+      "${workspaceFolder}/.cuda-toolkit/include"
+    ]
+  },
   "configurations": [
     {
-      "name": "macos-clang-arm64",
+      "name": "macos-cuda-authoring",
       "includePath": [
-        "${workspaceFolder}/**"
+        "${workspaceFolder}/**",
+        "${cudaIncludePaths}"
       ],
-      "compilerPath": "/usr/bin/clang",
-      "cStandard": "${default}",
-      "cppStandard": "${default}",
-      "intelliSenseMode": "macos-clang-arm64",
+      "browse": {
+        "path": [
+          "${workspaceFolder}",
+          "${cudaIncludePaths}"
+        ],
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "defines": [
+        "__CUDACC__",
+        "__global__=",
+        "__host__=",
+        "__device__=",
+        "__shared__=",
+        "__constant__=",
+        "__managed__=",
+        "__forceinline__=inline",
+        "__restrict__=__restrict"
+      ],
+      "compilerPath": "/usr/bin/clang++",
       "compilerArgs": [
-        ""
-      ]
+        "-xc++"
+      ],
+      "cStandard": "c17",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "macos-clang-arm64"
     }
   ],
   "version": 4
