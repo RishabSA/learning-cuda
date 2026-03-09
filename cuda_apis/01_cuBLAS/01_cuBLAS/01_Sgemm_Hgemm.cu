@@ -8,7 +8,7 @@
 #define N 2
 
 // When running this file, to compile with linked cuBLAS functions, add:
-// -lcublas
+// -lcublas -lcuda
 
 #define CHECK_CUDA(call) { \
     cudaError_t err = call; \
